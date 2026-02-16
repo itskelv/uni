@@ -65,6 +65,7 @@ class FeatureClass:
         self._dataset = params['dataset']
         self._eps = 1e-8
         self._nb_channels = 4
+        self._ild_ipd = params['ild_ipd']
 
         self._multi_accdoa = params['multi_accdoa']
         self._use_salsalite = params['use_salsalite']
@@ -156,6 +157,71 @@ class FeatureClass:
             exit()
         return foa_iv
 
+    def _get_ild_ipd(self, linear_spectra):
+        w = linear_spectra[:, :, 0]
+        x = linear_spectra[:, :, 1]
+        y = linear_spectra[:, :, 2]
+        z = linear_spectra[:, :, 3]
+        e = self._eps
+        
+        L_y = w + y
+        R_y = w - y
+
+        mag_L_y = np.abs(L_y) + e
+        mag_R_y = np.abs(R_y) + e
+
+        phase_L_y = np.angle(L_y)
+        phase_R_y = np.angle(R_y)
+
+        # ILD Y
+        ild_y = 20 * np.log10(mag_L_y / mag_R_y)
+        ild_y = np.dot(ild_y, self._mel_wts)
+
+        # IPD Y
+        delta_y = phase_L_y - phase_R_y
+        ipd_y_cos = np.cos(delta_y)
+        ipd_y = np.dot(ipd_y_cos, self._mel_wts)
+
+        L_x = w + x
+        R_x = w - x
+
+        mag_L_x = np.abs(L_x) + e
+        mag_R_x = np.abs(R_x) + e
+
+        phase_L_x = np.angle(L_x)
+        phase_R_x = np.angle(R_x)
+
+        # ILD X
+        ild_x = 20 * np.log10(mag_L_x / mag_R_x)
+        ild_x = np.dot(ild_x, self._mel_wts)
+
+        # IPD X
+        delta_x = phase_L_x - phase_R_x
+        ipd_x_cos = np.cos(delta_x)
+        ipd_x = np.dot(ipd_x_cos, self._mel_wts)
+
+        L_z = w + z
+        R_z = w - z
+
+        mag_L_z = np.abs(L_z) + e
+        mag_R_z = np.abs(R_z) + e
+
+        phase_L_z = np.angle(L_z)
+        phase_R_z = np.angle(R_z)
+
+        # ILD Z
+        ild_z = 20 * np.log10(mag_L_z / mag_R_z)
+        ild_z = np.dot(ild_z, self._mel_wts)
+
+        # IPD Z
+        delta_z = phase_L_z - phase_R_z
+        ipd_z_cos = np.cos(delta_z)
+        ipd_z = np.dot(ipd_z_cos, self._mel_wts)
+
+        ild_ipd_features = np.stack([ild_y, ipd_y, ild_x, ipd_x, ild_z, ipd_z])
+
+        return ild_ipd_features
+    
     def _get_gcc(self, linear_spectra):
         gcc_channels = nCr(linear_spectra.shape[-1], 2)
         gcc_feat = np.zeros((linear_spectra.shape[0], self._nb_mel_bins, gcc_channels))
@@ -362,6 +428,9 @@ class FeatureClass:
             # extract intensity vectors
             foa_iv = self._get_foa_intensity_vectors(spect)
             feat = np.concatenate((mel_spect, foa_iv), axis=-1)
+            if self._ild_ipd == True:
+                ild_ipd = self._get_ild_ipd(spect)
+                feat = np.concatenate((feat, ild_ipd), axis=-1)
         elif self._dataset == 'mic':
             if self._use_salsalite:
                 feat = self._get_salsalite(spect)

@@ -11,7 +11,7 @@ def get_params(argv='1'):
         quick_test=True,  # To do quick test. Trains/test on small subset of dataset, and # of epochs
 
         finetune_mode=True,  # Finetune on existing model, requires the pretrained model path set - pretrained_model_weights
-        pretrained_model_weights='3_1_dev_split0_multiaccdoa_foa_model.h5',
+        # pretrained_model_weights='3_1_dev_split0_multiaccdoa_foa_model.h5',
 
         # INPUT PATH
         # dataset_dir='DCASE2020_SELD_dataset/',  # Base folder containing the foa/mic and metadata folders
@@ -34,6 +34,7 @@ def get_params(argv='1'):
         label_hop_len_s=0.1,
         max_audio_len_s=60,
         nb_mel_bins=64,
+        ild_ipd=False,
 
         use_salsalite=False,  # Used for MIC dataset only. If true use salsalite features, else use GCC features
         fmin_doa_salsalite=50,
@@ -89,6 +90,7 @@ def get_params(argv='1'):
         params['quick_test'] = False
         params['dataset'] = 'foa'
         params['multi_accdoa'] = True
+        params['finetune_mode'] = False
 
     elif argv == '4':
         print("MIC + GCC + ACCDOA\n")
@@ -118,6 +120,14 @@ def get_params(argv='1'):
         params['dataset'] = 'mic'
         params['use_salsalite'] = True
         params['multi_accdoa'] = True
+
+    elif argv == '8':
+        print("ild ipd + FOA + multi ACCDOA\n")
+        params['quick_test'] = False
+        params['dataset'] = 'foa'
+        params['multi_accdoa'] = True
+        params['finetune_mode'] = False
+        params['ild_ipd'] = True
 
     elif argv == '999':
         print("QUICK TEST MODE\n")
