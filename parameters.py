@@ -15,11 +15,15 @@ def get_params(argv='1'):
 
         # INPUT PATH
         # dataset_dir='DCASE2020_SELD_dataset/',  # Base folder containing the foa/mic and metadata folders
-        dataset_dir='../DCASE_FOA_DATASET_2024/',
+        # dataset_dir='../DCASE_FOA_DATASET_2024/',
 
         # OUTPUT PATHS
         # feat_label_dir='DCASE2020_SELD_dataset/feat_label_hnet/',  # Directory to dump extracted features and labels
-        feat_label_dir='../DCASE_FOA_DATASET_2024/seld_feat_label/',
+        # feat_label_dir='../DCASE_FOA_DATASET_2024/seld_feat_label/',
+
+        # Unified directory
+        dataset_dir='../unidataset/',
+        feat_label_dir='../unidataset/seld_feat_label/',
 
         model_dir='models',  # Dumps the trained models and training curves in this folder
         dcase_output_dir='results',  # recording-wise results are dumped in this path.
@@ -135,9 +139,7 @@ def get_params(argv='1'):
         params['dataset'] = 'foa'
         params['multi_accdoa'] = True
         params['finetune_mode'] = False
-        params['ild_ipd'] = True,
-        params['dataset_dir']='../unidataset/',
-        params['feat_label_dir']='../unidataset/seld_feat_label/'
+        params['ild_ipd'] = True
 
     elif argv == '999':
         print("QUICK TEST MODE\n")
