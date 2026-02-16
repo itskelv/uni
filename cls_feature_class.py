@@ -430,6 +430,7 @@ class FeatureClass:
             feat = np.concatenate((mel_spect, foa_iv), axis=-1)
             if self._ild_ipd == True:
                 ild_ipd = self._get_ild_ipd(spect)
+                ild_ipd = ild_ipd.transpose(1, 0, 2).reshape(spect.shape[0], -1)
                 feat = np.concatenate((feat, ild_ipd), axis=-1)
         elif self._dataset == 'mic':
             if self._use_salsalite:
