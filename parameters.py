@@ -129,6 +129,16 @@ def get_params(argv='1'):
         params['finetune_mode'] = False
         params['ild_ipd'] = True
 
+    elif argv == '9':
+        print("ild ipd + unified + multi ACCDOA\n")
+        params['quick_test'] = False
+        params['dataset'] = 'foa'
+        params['multi_accdoa'] = True
+        params['finetune_mode'] = False
+        params['ild_ipd'] = True,
+        params['dataset_dir']='../unidataset/',
+        params['feat_label_dir']='../unidataset/seld_feat_label/'
+
     elif argv == '999':
         print("QUICK TEST MODE\n")
         params['quick_test'] = True
@@ -153,6 +163,8 @@ def get_params(argv='1'):
     elif '2023' in params['dataset_dir']:
         params['unique_classes'] = 13
     elif '2024' in params['dataset_dir']:
+        params['unique_classes'] = 13
+    else:
         params['unique_classes'] = 13
 
     for key, value in params.items():

@@ -116,6 +116,19 @@ class FeatureClass:
 
     def _load_audio(self, audio_path):
         fs, audio = wav.read(audio_path)
+        if audio.shape[1] < 4:  # stereo
+            L = audio[:, 0]
+            R = audio[:, 1]
+
+            W = (L + R) / np.sqrt(2) # mimic omnidirectional
+            X = (L - R) / np.sqrt(2) # mimic x axis
+            Y = np.zeros_like(W) # fake channel
+            Z = np.zeros_like(W) # fake channel
+
+            audio = np.stack([W, X, Y, Z], axis=1)
+
+            return audio, fs
+        
         audio = audio[:, :self._nb_channels] / 32768.0 + self._eps
         return audio, fs
 
