@@ -449,6 +449,9 @@ class FeatureClass:
     def extract_all_feature(self):
         # setting up folders
         self._feat_dir = self.get_unnormalized_feat_dir()
+        if self._ild_ipd:
+            print("extracting ild and ipd")
+            self._feat_dir = os.path.join(self._feat_dir, "+ild_ipd")
         create_folder(self._feat_dir)
         from multiprocessing import Pool
         import time
@@ -475,7 +478,11 @@ class FeatureClass:
     def preprocess_features(self):
         # Setting up folders and filenames
         self._feat_dir = self.get_unnormalized_feat_dir()
+        if self._ild_ipd:
+            self._feat_dir = os.path.join(self._feat_dir, "+ild_ipd")
         self._feat_dir_norm = self.get_normalized_feat_dir()
+        if self._ild_ipd:
+            self._feat_dir_norm = os.path.join(self._feat_dir_norm, "+ild_ipd")
         create_folder(self._feat_dir_norm)
         normalized_features_wts_file = self.get_normalized_wts_file()
         spec_scaler = None
@@ -519,6 +526,9 @@ class FeatureClass:
     def extract_all_labels(self):
         self.get_frame_stats()
         self._label_dir = self.get_label_dir()
+        if self._ild_ipd:
+            print("extracting ild and ipd")
+            self._label_dir = os.path.join(self._label_dir, "+ild_ipd")
 
         print('Extracting labels:')
         print('\t\taud_dir {}\n\t\tdesc_dir {}\n\t\tlabel_dir {}'.format(
