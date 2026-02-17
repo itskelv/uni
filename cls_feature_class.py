@@ -442,7 +442,7 @@ class FeatureClass:
             # extract intensity vectors
             foa_iv = self._get_foa_intensity_vectors(spect)
             feat = np.concatenate((mel_spect, foa_iv), axis=-1)
-            if self._ild_ipd == True:
+            if self._ild_ipd:
                 ild_ipd = self._get_ild_ipd(spect)
                 ild_ipd = ild_ipd.transpose(1, 0, 2).reshape(spect.shape[0], -1)
                 feat = np.concatenate((feat, ild_ipd), axis=-1)
