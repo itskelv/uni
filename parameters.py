@@ -21,7 +21,7 @@ def get_params(argv='1'):
         # feat_label_dir='DCASE2020_SELD_dataset/feat_label_hnet/',  # Directory to dump extracted features and labels
         # feat_label_dir='../DCASE_FOA_DATASET_2024/seld_feat_label/',
 
-        # Unified directory
+        # Unified directory 
         dataset_dir='../unidataset/',
         feat_label_dir='../unidataset/seld_feat_label/',
 
@@ -39,6 +39,7 @@ def get_params(argv='1'):
         max_audio_len_s=60,
         nb_mel_bins=64,
         ild_ipd=False,
+        unified=False,
 
         use_salsalite=False,  # Used for MIC dataset only. If true use salsalite features, else use GCC features
         fmin_doa_salsalite=50,
@@ -139,7 +140,8 @@ def get_params(argv='1'):
         params['dataset'] = 'foa'
         params['multi_accdoa'] = True
         params['finetune_mode'] = False
-        params['ild_ipd'] = True
+        params['ild_ipd'] = True,
+        params['unified'] = True
 
     elif argv == '999':
         print("QUICK TEST MODE\n")
