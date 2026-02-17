@@ -493,11 +493,10 @@ class FeatureClass:
     def preprocess_features(self):
         # Setting up folders and filenames
         self._feat_dir = self.get_unnormalized_feat_dir()
-        if self._ild_ipd:
-            self._feat_dir = self._feat_dir + "+ild_ipd"
         self._feat_dir_norm = self.get_normalized_feat_dir()
         if self._ild_ipd:
-            self._feat_dir_norm = self._feat_dir_norm + "+ild_ipd"
+            self._feat_dir = self._feat_dir + "+ild_ipd"
+            self._feat_dir_norm = self._feat_dir_norm + "ild_ipd"
         create_folder(self._feat_dir_norm)
         normalized_features_wts_file = self.get_normalized_wts_file()
         spec_scaler = None
