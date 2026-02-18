@@ -619,27 +619,67 @@ class FeatureClass:
         :param _output_format_file: DCASE output format CSV
         :return: _output_dict: dictionary
         """
+        # check modality
+        is_stereo = 'deg' in _output_format_file.lower()
+
         _output_dict = {}
         _fid = open(_output_format_file, 'r')
-        # next(_fid)
+        
         _words = []     # For empty files
-        for _line in _fid:
-            _words = _line.strip().split(',')
-            _frame_ind = int(_words[0])
-            if _frame_ind not in _output_dict:
-                _output_dict[_frame_ind] = []
-            if len(_words) == 4:  # frame, class idx,  polar coordinates(2) # no distance data, for example in eval pred
-                _output_dict[_frame_ind].append([int(_words[1]), 0, float(_words[2]), float(_words[3])])
-            if len(_words) == 5:  # frame, class idx, source_id, polar coordinates(2) # no distance data, for example in synthetic data fold 1 and 2
-                _output_dict[_frame_ind].append([int(_words[1]), int(_words[2]), float(_words[3]), float(_words[4])])
-            if len(_words) == 6: # frame, class idx, source_id, polar coordinates(2), distance
-                _output_dict[_frame_ind].append([int(_words[1]), int(_words[2]), float(_words[3]), float(_words[4]), float(_words[5])/100 if cm2m else float(_words[5])])
-            elif len(_words) == 7: # frame, class idx, source_id, cartesian coordinates(3), distance
-                _output_dict[_frame_ind].append([int(_words[1]), int(_words[2]), float(_words[3]), float(_words[4]), float(_words[5]), float(_words[6])/100 if cm2m else float(_words[6])])
+
+        if is_stereo:
+            try:
+                next(_fid)  # Skip header
+            except StopIteration:
+                return {} 
+            for _line in _fid:
+                _words = _line.strip().split(',')
+                _frame_ind = int(_words[0]) # frame
+                if _frame_ind not in _output_dict:
+                    _output_dict[_frame_ind] = []
+                _output_dict[_frame_ind].append([
+                    int(_words[1]),     # class id
+                    int(_words[2]),     # source id
+                    float(_words[3]),   # azimuth
+                    float(0),           # elevation = 0 (empty)
+                    float(_words[4])/100 if cm2m else float(_words[4])  # distance
+                    # on screen features are ignored
+        ])
+
+        else:
+            for _line in _fid:
+                _words = _line.strip().split(',')
+                _frame_ind = int(_words[0]) # frame
+                if _frame_ind not in _output_dict:
+                    _output_dict[_frame_ind] = []
+                _output_dict[_frame_ind].append([
+                    int(_words[1]),     # class id
+                    int(_words[2]),     # source id
+                    float(_words[3]),   # azimuth
+                    float(_words[4]),   # elevation
+                    float(_words[5])/100 if cm2m else float(_words[5])  # distance
+                ])   
+
         _fid.close()
-        if len(_words) == 7:
-            _output_dict = self.convert_output_format_cartesian_to_polar(_output_dict)
+        
         return _output_dict
+
+    def convert_output_format_polar_to_cartesian(self, in_dict):
+        """Convert polar coordinates (azimuth, elevation) to Cartesian (x, y, z)"""
+        out_dict = {}
+        for frame_cnt in in_dict.keys():
+            if frame_cnt not in out_dict:
+                out_dict[frame_cnt] = []
+                for tmp_val in in_dict[frame_cnt]:
+                    ele_rad = tmp_val[3]*np.pi/180.
+                    azi_rad = tmp_val[2]*np.pi/180.
+
+                    tmp_label = np.cos(ele_rad)
+                    x = np.cos(azi_rad) * tmp_label
+                    y = np.sin(azi_rad) * tmp_label
+                    z = np.sin(ele_rad)
+                    out_dict[frame_cnt].append(tmp_val[0:2] + [x, y, z] + tmp_val[4:])
+        return out_dict
 
     def write_output_format_file(self, _output_format_file, _output_format_dict):
         """
