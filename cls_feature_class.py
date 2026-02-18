@@ -496,7 +496,7 @@ class FeatureClass:
         self._feat_dir_norm = self.get_normalized_feat_dir()
         if self._ild_ipd:
             self._feat_dir = self._feat_dir + "+ild_ipd"
-            self._feat_dir_norm = self._feat_dir_norm + "ild_ipd"
+            self._feat_dir_norm = self._feat_dir_norm + "+ild_ipd"
         create_folder(self._feat_dir_norm)
         normalized_features_wts_file = self.get_normalized_wts_file()
         spec_scaler = None
@@ -619,7 +619,6 @@ class FeatureClass:
         :param _output_format_file: DCASE output format CSV
         :return: _output_dict: dictionary
         """
-        # check modality
         is_stereo = 'deg' in _output_format_file.lower()
 
         _output_dict = {}
@@ -663,23 +662,6 @@ class FeatureClass:
         _fid.close()
         
         return _output_dict
-
-    def convert_output_format_polar_to_cartesian(self, in_dict):
-        """Convert polar coordinates (azimuth, elevation) to Cartesian (x, y, z)"""
-        out_dict = {}
-        for frame_cnt in in_dict.keys():
-            if frame_cnt not in out_dict:
-                out_dict[frame_cnt] = []
-                for tmp_val in in_dict[frame_cnt]:
-                    ele_rad = tmp_val[3]*np.pi/180.
-                    azi_rad = tmp_val[2]*np.pi/180.
-
-                    tmp_label = np.cos(ele_rad)
-                    x = np.cos(azi_rad) * tmp_label
-                    y = np.sin(azi_rad) * tmp_label
-                    z = np.sin(ele_rad)
-                    out_dict[frame_cnt].append(tmp_val[0:2] + [x, y, z] + tmp_val[4:])
-        return out_dict
 
     def write_output_format_file(self, _output_format_file, _output_format_dict):
         """
