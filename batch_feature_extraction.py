@@ -21,12 +21,15 @@ def main(argv):
         # # Extract features and normalize them
         print("extracting features")
         dev_feat_cls.extract_all_feature()
+        print("features extracted")
         print("normalizing features")
         dev_feat_cls.preprocess_features()
+        print("features normalized")
 
         # # Extract labels
         print("extracting labels")
         dev_feat_cls.extract_all_labels()
+        print("labels extracted")
 
         # # Extract visual features
         if params['modality'] == 'audio_visual':
