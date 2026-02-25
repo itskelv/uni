@@ -30,7 +30,7 @@ def get_params(argv='1'):
 
         # DATASET LOADING PARAMETERS
         mode='dev',  # 'dev' - development or 'eval' - evaluation dataset
-        dataset='foa',  # 'foa' - ambisonic or 'mic' - microphone signals
+        dataset='audio',  # 'foa' - ambisonic or 'mic' - microphone signals
 
         # FEATURE PARAMS
         fs=24000,
