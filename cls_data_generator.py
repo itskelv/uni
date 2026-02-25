@@ -24,6 +24,10 @@ class DataGenerator(object):
         self._feat_cls = cls_feature_class.FeatureClass(params=params, is_eval=self._is_eval)
         self._label_dir = self._feat_cls.get_label_dir()
         self._feat_dir = self._feat_cls.get_normalized_feat_dir()
+        if self._ild_ipd:
+            print("generate with ild and ipd")
+            self._feat_dir = self._feat_dir + "+ild_ipd"
+            self._label_dir = self._label_dir + "+ild_ipd"
         self._multi_accdoa = params['multi_accdoa']
 
         self._filenames_list = list()
