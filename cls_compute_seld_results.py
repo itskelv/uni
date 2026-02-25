@@ -48,8 +48,8 @@ def jackknife_estimation(global_value, partial_estimates, significance_level=0.0
 
 class ComputeSELDResults(object):
     def __init__(self, params, ref_files_folder=None):
-        self._ild_ipd = params['ild_ipd']
-        self._desc_dir = ref_files_folder if ref_files_folder is not None else os.path.join(params['dataset_dir'], 'metadata' if self._ild_ipd
+        self._unified = params['unified']
+        self._desc_dir = ref_files_folder if ref_files_folder is not None else os.path.join(params['dataset_dir'], 'metadata' if self._unified
                                                                                              else 'metadata_dev')
         self._doa_thresh = params['lad_doa_thresh']
         self._dist_thresh = params['lad_dist_thresh']  if 'lad_dist_thresh' in params else float('inf')
