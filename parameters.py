@@ -140,7 +140,7 @@ def get_params(argv='1'):
         params['dataset'] = 'foa'
         params['multi_accdoa'] = True
         params['finetune_mode'] = False
-        params['ild_ipd'] = True,
+        params['ild_ipd'] = True
         params['unified'] = True
 
     elif argv == '999':
