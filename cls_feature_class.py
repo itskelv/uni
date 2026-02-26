@@ -189,6 +189,7 @@ class FeatureClass:
 
         # ILD Y
         ild_y = 20 * np.log10(mag_L_y / mag_R_y)
+        ild_y = np.tanh(ild_y / 20.0)
         ild_y = np.dot(ild_y, self._mel_wts)
 
         # IPD Y
@@ -207,6 +208,7 @@ class FeatureClass:
 
         # ILD X
         ild_x = 20 * np.log10(mag_L_x / mag_R_x)
+        ild_x = np.tanh(ild_x / 20.0)
         ild_x = np.dot(ild_x, self._mel_wts)
 
         # IPD X
@@ -225,6 +227,7 @@ class FeatureClass:
 
         # ILD Z
         ild_z = 20 * np.log10(mag_L_z / mag_R_z)
+        ild_z = np.tanh(ild_z / 20.0)
         ild_z = np.dot(ild_z, self._mel_wts)
 
         # IPD Z
