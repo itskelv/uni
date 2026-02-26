@@ -72,6 +72,7 @@ class ComputeSELDResults(object):
                 if len(keys) > 0:
                     nb_ref_frames = max(keys)
                 else:
+                    print("no event detected")
                     nb_ref_frames = 300
                 nb_ref_frames = max(list(gt_dict.keys()))
                 if self.segment_level:
