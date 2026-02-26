@@ -69,7 +69,7 @@ def get_params(argv='1'):
         fnn_size=128,  # FNN contents, length of list = number of layers, list value = number of nodes
 
         nb_epochs=250,  # Train for maximum epochs
-        lr=1e-3,
+        lr=3e-3,
 
         # METRIC
         average='macro',                 # Supports 'micro': sample-wise average and 'macro': class-wise average,
@@ -133,7 +133,6 @@ def get_params(argv='1'):
         params['multi_accdoa'] = True
         params['finetune_mode'] = False
         params['ild_ipd'] = True
-        params['lr'] = 3e-3
 
     elif argv == '9':
         print("ild ipd + unified + multi ACCDOA\n")
