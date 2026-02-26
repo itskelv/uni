@@ -133,6 +133,7 @@ def get_params(argv='1'):
         params['multi_accdoa'] = True
         params['finetune_mode'] = False
         params['ild_ipd'] = True
+        params['lr'] = 3e-3
 
     elif argv == '9':
         print("ild ipd + unified + multi ACCDOA\n")
