@@ -143,6 +143,14 @@ def get_params(argv='1'):
         params['ild_ipd'] = True
         params['unified'] = True
 
+    elif argv == '10':
+        print("ild ipd + unified + multi ACCDOA\n")
+        params['quick_test'] = False
+        params['dataset'] = 'foa'
+        params['multi_accdoa'] = True
+        params['finetune_mode'] = False
+        params['unified'] = True
+
     elif argv == '999':
         print("QUICK TEST MODE\n")
         params['quick_test'] = True
