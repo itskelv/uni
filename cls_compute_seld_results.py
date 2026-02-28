@@ -74,7 +74,6 @@ class ComputeSELDResults(object):
                 else:
                     print("no event detected")
                     nb_ref_frames = 300
-                nb_ref_frames = max(list(gt_dict.keys()))
                 if self.segment_level:
                     self._ref_labels[ref_file] = [self._feat_cls.segment_labels(gt_dict, nb_ref_frames), nb_ref_frames]
                 else:
