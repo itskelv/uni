@@ -144,7 +144,7 @@ def get_params(argv='1'):
         params['unified'] = True
 
     elif argv == '10':
-        print("ild ipd + unified + multi ACCDOA\n")
+        print("unified + multi ACCDOA\n")
         params['quick_test'] = False
         params['dataset'] = 'foa'
         params['multi_accdoa'] = True

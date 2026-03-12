@@ -433,8 +433,15 @@ def main(argv):
             score_obj = ComputeSELDResults(params)
 
             # start training
-            best_val_epoch = -1
-            best_ER, best_F, best_LE, best_LR, best_seld_scr, best_dist_err, best_rel_dist_err = 1., 0., 180., 0., 9999, 999999., 999999.
+            # best_val_epoch = -1
+            # best_ER, best_F, best_LE, best_LR, best_seld_scr, best_dist_err, best_rel_dist_err = 1., 0., 180., 0., 9999, 999999., 999999.
+            # patience_cnt = 0
+
+            # seperate evaluation
+            best_f_val_epoch = -1
+            best_s_val_epoch = -1
+            best_f_ER, best_F_F, best_f_LE, best_f_LR, best_f_seld_scr, best_f_dist_err, best_f_rel_dist_err = 1., 0., 180., 0., 9999, 999999., 999999.
+            best_s_ER, best_s_F, best_s_LE, best_s_LR, best_s_seld_scr, best_s_dist_err, best_s_rel_dist_err = 1., 0., 180., 0., 9999, 999999., 999999.
             patience_cnt = 0
 
             nb_epoch = 2 if params['quick_test'] else params['nb_epochs']
