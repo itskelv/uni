@@ -67,6 +67,7 @@ class FeatureClass:
         self._eps = 1e-8
         self._nb_channels = 4
         self._ild_ipd = params['ild_ipd']
+        self._single_ild_ipd = params['single_ild_ipd']
 
         self._multi_accdoa = params['multi_accdoa']
         self._use_salsalite = params['use_salsalite']
@@ -236,6 +237,34 @@ class FeatureClass:
         ipd_z = np.dot(ipd_z_cos, self._mel_wts)
 
         ild_ipd_features = np.stack([ild_y, ipd_y, ild_x, ipd_x, ild_z, ipd_z])
+
+        return ild_ipd_features
+    
+    def _get_single_ild_ipd(self, linear_spectra):
+        w = linear_spectra[:, :, 0]
+        x = linear_spectra[:, :, 1]
+        e = self._eps
+        
+        L = (w + x) / np.sqrt(2)
+        R = (w - x) / np.sqrt(2)
+
+        # Magnitude
+        mag_L = np.abs(L) + e
+        mag_R = np.abs(R) + e
+
+        # Phase
+        phase_L = np.angle(L)
+        phase_R = np.angle(R)
+
+        ild = 20 * np.log10(mag_L / mag_R)
+        ild = np.tanh(ild / 20.0)
+        ild = np.dot(ild, self._mel_wts)
+
+        delta = phase_L - phase_R
+        ipd_cos = np.cos(delta)
+        ipd = np.dot(ipd_cos, self._mel_wts)
+
+        ild_ipd_features = np.stack([ild, ipd])
 
         return ild_ipd_features
     
@@ -449,6 +478,10 @@ class FeatureClass:
                 ild_ipd = self._get_ild_ipd(spect)
                 ild_ipd = ild_ipd.transpose(1, 0, 2).reshape(spect.shape[0], -1)
                 feat = np.concatenate((feat, ild_ipd), axis=-1)
+            elif self._single_ild_ipd:
+                ild_ipd = self._get_single_ild_ipd(spect)
+                ild_ipd = ild_ipd.transpose(1, 0, 2).reshape(spect.shape[0], -1)
+                feat = np.concatenate((feat, ild_ipd), axis=-1)
         elif self._dataset == 'mic':
             if self._use_salsalite:
                 feat = self._get_salsalite(spect)
@@ -470,6 +503,9 @@ class FeatureClass:
         if self._ild_ipd:
             print("extracting ild and ipd")
             self._feat_dir = self._feat_dir + "+ild_ipd"
+        elif self._single_ild_ipd:
+            print("extracting single ild ipd")
+            self._feat_dir = self._feat_dir + "+single_ild_ipd"
         create_folder(self._feat_dir)
         from multiprocessing import Pool
         import time
@@ -500,6 +536,9 @@ class FeatureClass:
         if self._ild_ipd:
             self._feat_dir = self._feat_dir + "+ild_ipd"
             self._feat_dir_norm = self._feat_dir_norm + "+ild_ipd"
+        if self._single_ild_ipd:
+            self._feat_dir = self._feat_dir + "+single_ild_ipd"
+            self._feat_dir_norm = self._feat_dir_norm + "+single_ild_ipd"
         create_folder(self._feat_dir_norm)
         normalized_features_wts_file = self.get_normalized_wts_file()
         spec_scaler = None
@@ -546,6 +585,9 @@ class FeatureClass:
         if self._ild_ipd:
             print("extracting ild and ipd")
             self._label_dir = self._label_dir + "+ild_ipd"
+        if self._single_ild_ipd:
+            print("extracting single ild and ipd")
+            self._label_dir = self._label_dir + "+single_ild_ipd"
 
         print('Extracting labels:')
         print('\t\taud_dir {}\n\t\tdesc_dir {}\n\t\tlabel_dir {}'.format(

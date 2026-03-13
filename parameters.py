@@ -40,6 +40,7 @@ def get_params(argv='1'):
         nb_mel_bins=64,
         ild_ipd=False,
         unified=False,
+        single_ild_ipd=False,
 
         use_salsalite=False,  # Used for MIC dataset only. If true use salsalite features, else use GCC features
         fmin_doa_salsalite=50,
@@ -141,6 +142,7 @@ def get_params(argv='1'):
         params['multi_accdoa'] = True
         params['finetune_mode'] = False
         params['ild_ipd'] = True
+        params['single_ild_ipd'] = False
         params['unified'] = True
 
     elif argv == '10':
@@ -149,6 +151,16 @@ def get_params(argv='1'):
         params['dataset'] = 'foa'
         params['multi_accdoa'] = True
         params['finetune_mode'] = False
+        params['unified'] = True
+
+    elif argv == '11':
+        print("1 ild ipd + unified + multi ACCDOA\n")
+        params['quick_test'] = False
+        params['dataset'] = 'foa'
+        params['multi_accdoa'] = True
+        params['finetune_mode'] = False
+        params['single_ild_ipd'] = True
+        params['ild_ipd'] = False
         params['unified'] = True
 
     elif argv == '999':
