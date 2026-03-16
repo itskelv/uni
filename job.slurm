@@ -6,9 +6,9 @@
 #SBATCH --ntasks-per-node=1
 #SBATCH --cpus-per-task=8
 #SBATCH --gres=gpu:4
-#SBATCH --output=single_ild_ipd+iv+base.out
-#SBATCH --error=single_ild_ipd+iv+base.err
+#SBATCH --output=unified.out
+#SBATCH --error=unified.err
 
 module load cuda/12.1
 conda activate uni
-python3 train_seldnet.py 11
+python3 train_seldnet.py 10

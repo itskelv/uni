@@ -151,6 +151,8 @@ def get_params(argv='1'):
         params['dataset'] = 'foa'
         params['multi_accdoa'] = True
         params['finetune_mode'] = False
+        params['ild_ipd'] = False
+        params['single_ild_ipd'] = False
         params['unified'] = True
 
     elif argv == '11':
