@@ -118,6 +118,7 @@ class FeatureClass:
 
     def _load_audio(self, audio_path):
         fs, audio = wav.read(audio_path)
+        is_stereo = False
         if audio.shape[1] < 4:  # stereo
             L = audio[:, 0]
             R = audio[:, 1]
@@ -128,11 +129,12 @@ class FeatureClass:
             Z = np.zeros_like(W) # fake channel
 
             audio = np.stack([W, X, Y, Z], axis=1)
+            is_stereo = True
 
-            return audio, fs
+            return audio, fs, is_stereo
         
         audio = audio[:, :self._nb_channels] / 32768.0 + self._eps
-        return audio, fs
+        return audio, fs, is_stereo
 
     # INPUT FEATURES
     @staticmethod
@@ -300,14 +302,14 @@ class FeatureClass:
         return np.concatenate((linear_spectra, phase_vector), axis=-1)
 
     def _get_spectrogram_for_file(self, audio_filename):
-        audio_in, fs = self._load_audio(audio_filename)
+        audio_in, fs, is_stereo = self._load_audio(audio_filename)
 
         nb_feat_frames = int(len(audio_in) / float(self._hop_len))
         nb_label_frames = int(len(audio_in) / float(self._label_hop_len))
         self._filewise_frames[os.path.basename(audio_filename).split('.')[0]] = [nb_feat_frames, nb_label_frames]
 
         audio_spec = self._spectrogram(audio_in, nb_feat_frames)
-        return audio_spec
+        return audio_spec, is_stereo
 
     # OUTPUT LABELS
     def get_labels_for_file(self, _desc_file, _nb_label_frames):
@@ -463,7 +465,7 @@ class FeatureClass:
 
     def extract_file_feature(self, _arg_in):
         _file_cnt, _wav_path, _feat_path = _arg_in
-        spect = self._get_spectrogram_for_file(_wav_path)
+        spect, is_stereo = self._get_spectrogram_for_file(_wav_path)
 
         # extract mel
         if not self._use_salsalite:
@@ -492,7 +494,11 @@ class FeatureClass:
         else:
             print('ERROR: Unknown dataset format {}'.format(self._dataset))
             exit()
-
+        
+        if is_stereo:
+            _feat_path = _feat_path + "stereo"
+        else:
+            _feat_path = _feat_path + "foa"
         if feat is not None:
             print('{}: {}, {}'.format(_file_cnt, os.path.basename(_wav_path), feat.shape))
             np.save(_feat_path, feat)
@@ -506,14 +512,17 @@ class FeatureClass:
         elif self._single_ild_ipd:
             print("extracting single ild ipd")
             self._feat_dir = self._feat_dir + "+single_ild_ipd"
-        create_folder(self._feat_dir)
+        self._f_feat_dir = self._feat_dir + "foa"
+        self._s_feat_dir = self._feat_dir + "stereo"        
+        create_folder(self._f_feat_dir)
+        create_folder(self._s_feat_dir)
         from multiprocessing import Pool
         import time
         start_s = time.time()
         # extraction starts
         print('Extracting spectrogram:')
-        print('\t\taud_dir {}\n\t\tdesc_dir {}\n\t\tfeat_dir {}'.format(
-            self._aud_dir, self._desc_dir, self._feat_dir))
+        print('\t\taud_dir {}\n\t\tdesc_dir {}\n\t\tf_feat_dir {}\n\t\ts_feat_dir {}'.format(
+            self._aud_dir, self._desc_dir, self._f_feat_dir, self._s_feat_dir))
         arg_list = []
         for sub_folder in os.listdir(self._aud_dir):
             loc_aud_folder = os.path.join(self._aud_dir, sub_folder)
@@ -539,7 +548,12 @@ class FeatureClass:
         if self._single_ild_ipd:
             self._feat_dir = self._feat_dir + "+single_ild_ipd"
             self._feat_dir_norm = self._feat_dir_norm + "+single_ild_ipd"
-        create_folder(self._feat_dir_norm)
+        self._f_feat_dir = self._feat_dir + "foa"
+        self._s_feat_dir = self._feat_dir + "stereo"
+        self._f_feat_dir_norm = self._feat_dir_norm + "foa"
+        self._s_feat_dir_norm = self._feat_dir_norm + "stereo"
+        create_folder(self._f_feat_dir_norm)
+        create_folder(self._s_feat_dir_norm)
         normalized_features_wts_file = self.get_normalized_wts_file()
         spec_scaler = None
 
@@ -550,12 +564,17 @@ class FeatureClass:
 
         else:
             print('Estimating weights for normalizing feature files:')
-            print('\t\tfeat_dir: {}'.format(self._feat_dir))
+            print('\t\tf_feat_dir: {} \t\ts_feat_dir: {}'.format(self._f_feat_dir, self._s_feat_dir))
 
             spec_scaler = preprocessing.StandardScaler()
-            for file_cnt, file_name in enumerate(os.listdir(self._feat_dir)):
+            for file_cnt, file_name in enumerate(os.listdir(self._f_feat_dir)):
                 print('{}: {}'.format(file_cnt, file_name))
-                feat_file = np.load(os.path.join(self._feat_dir, file_name))
+                feat_file = np.load(os.path.join(self._f_feat_dir, file_name))
+                spec_scaler.partial_fit(feat_file)
+                del feat_file
+            for file_cnt, file_name in enumerate(os.listdir(self._s_feat_dir)):
+                print('{}: {}'.format(file_cnt, file_name))
+                feat_file = np.load(os.path.join(self._s_feat_dir, file_name))
                 spec_scaler.partial_fit(feat_file)
                 del feat_file
             joblib.dump(
@@ -565,18 +584,28 @@ class FeatureClass:
             print('Normalized_features_wts_file: {}. Saved.'.format(normalized_features_wts_file))
 
         print('Normalizing feature files:')
-        print('\t\tfeat_dir_norm {}'.format(self._feat_dir_norm))
-        for file_cnt, file_name in enumerate(os.listdir(self._feat_dir)):
+        print('\t\tf_feat_dir_norm: {} \t\ts_feat_dir_norm: {}'.format(self._f_feat_dir_norm, self._s_feat_dir_norm))
+        for file_cnt, file_name in enumerate(os.listdir(self._f_feat_dir)):
             print('{}: {}'.format(file_cnt, file_name))
-            feat_file = np.load(os.path.join(self._feat_dir, file_name))
+            feat_file = np.load(os.path.join(self._f_feat_dir, file_name))
             feat_file = spec_scaler.transform(feat_file)
             np.save(
-                os.path.join(self._feat_dir_norm, file_name),
+                os.path.join(self._f_feat_dir_norm, file_name),
+                feat_file
+            )
+            del feat_file
+        for file_cnt, file_name in enumerate(os.listdir(self._s_feat_dir)):
+            print('{}: {}'.format(file_cnt, file_name))
+            feat_file = np.load(os.path.join(self._s_feat_dir, file_name))
+            feat_file = spec_scaler.transform(feat_file)
+            np.save(
+                os.path.join(self._s_feat_dir_norm, file_name),
                 feat_file
             )
             del feat_file
 
-        print('normalized files written to {}'.format(self._feat_dir_norm))
+        print('normalized foa files written to {}'.format(self._f_feat_dir_norm))
+        print('normalized stereo files written to {}'.format(self._s_feat_dir_norm))
 
     # ------------------------------- EXTRACT LABELS AND PREPROCESS IT -------------------------------
     def extract_all_labels(self):
