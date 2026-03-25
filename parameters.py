@@ -70,7 +70,7 @@ def get_params(argv='1'):
         fnn_size=128,  # FNN contents, length of list = number of layers, list value = number of nodes
 
         # nb_epochs=250,  # Train for maximum epochs
-        nb_epoch=100,
+        nb_epochs=100,
         lr=3e-3,
 
         # METRIC
