@@ -527,9 +527,13 @@ class FeatureClass:
         for sub_folder in os.listdir(self._aud_dir):
             loc_aud_folder = os.path.join(self._aud_dir, sub_folder)
             for file_cnt, file_name in enumerate(os.listdir(loc_aud_folder)):
+                is_stereo = 'deg' in file_name.lower()
                 wav_filename = '{}.wav'.format(file_name.split('.')[0])
                 wav_path = os.path.join(loc_aud_folder, wav_filename)
-                feat_path = os.path.join(self._feat_dir, '{}.npy'.format(wav_filename.split('.')[0]))
+                if is_stereo:
+                    feat_path = os.path.join(self._s_feat_dir, '{}.npy'.format(wav_filename.split('.')[0]))
+                else:
+                    feat_path = os.path.join(self._f_feat_dir, '{}.npy'.format(wav_filename.split('.')[0]))
                 self.extract_file_feature((file_cnt, wav_path, feat_path))
                 arg_list.append((file_cnt, wav_path, feat_path))
 #        with Pool() as pool:
