@@ -25,8 +25,8 @@ class DataGenerator(object):
         self._feat_cls = cls_feature_class.FeatureClass(params=params, is_eval=self._is_eval)
         self._label_dir = self._feat_cls.get_label_dir()
         self._feat_dir = self._feat_cls.get_normalized_feat_dir()
-        if self._ild_ipd:
-            print("generate with ild and ipd")
+        if self._single_ild_ipd:
+            print("generate with single ild and ipd")
             self._feat_dir = self._feat_dir + "+single_ild_ipd"
             self._label_dir = self._label_dir + "+single_ild_ipd"
         if self._ild_ipd:
