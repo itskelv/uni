@@ -494,11 +494,7 @@ class FeatureClass:
         else:
             print('ERROR: Unknown dataset format {}'.format(self._dataset))
             exit()
-        
-        if is_stereo:
-            _feat_path = _feat_path + "stereo"
-        else:
-            _feat_path = _feat_path + "foa"
+
         if feat is not None:
             print('{}: {}, {}'.format(_file_cnt, os.path.basename(_wav_path), feat.shape))
             np.save(_feat_path, feat)
