@@ -403,8 +403,11 @@ def main(argv):
 
             # Load train and validation data
             print('Loading training dataset:')
-            data_gen_train = cls_data_generator.DataGenerator(
+            f_data_gen_train = cls_data_generator.DataGenerator(
                 params=params, split=train_splits[split_cnt], is_stereo=False
+            )
+            s_data_gen_train = cls_data_generator.DataGenerator(
+                params=params, split=train_splits[split_cnt], is_stereo=True
             )
 
             print('Loading validation dataset:')
@@ -417,10 +420,10 @@ def main(argv):
 
             # Collect i/o data size and load model configuration
             if params['modality'] == 'audio_visual':
-                data_in, vid_data_in, data_out = data_gen_train.get_data_sizes()
+                data_in, vid_data_in, data_out = f_data_gen_train.get_data_sizes()
                 model = seldnet_model.SeldModel(data_in, data_out, params, vid_data_in).to(device)
             else:
-                data_in, data_out = data_gen_train.get_data_sizes()
+                data_in, data_out = f_data_gen_train.get_data_sizes()
                 model = seldnet_model.SeldModel(data_in, data_out, params).to(device)
 
             if params['finetune_mode']:
@@ -473,7 +476,13 @@ def main(argv):
                 # TRAINING
                 # ---------------------------------------------------------------------
                 start_time = time.time()
-                train_loss = train_epoch(data_gen_train, optimizer, model, criterion, params, device)
+                if epoch_cnt % 2 == 0:
+                    f_train_loss = train_epoch(f_data_gen_train, optimizer, model, criterion, params, device)
+                    s_train_loss = train_epoch(s_data_gen_train, optimizer, model, criterion, params, device)
+                else:
+                    s_train_loss = train_epoch(s_data_gen_train, optimizer, model, criterion, params, device)
+                    f_train_loss = train_epoch(f_data_gen_train, optimizer, model, criterion, params, device)
+                train_loss = (f_train_loss + s_train_loss) / 2
                 train_time = time.time() - start_time
                 # ---------------------------------------------------------------------
                 # VALIDATION
@@ -538,7 +547,7 @@ def main(argv):
                 params=params, split=test_splits[split_cnt], shuffle=False, per_file=True, is_stereo=False
             )
             s_data_gen_test = cls_data_generator.DataGenerator(
-                params=params, split=test_splits[split_cnt], shuffle=False, per_file=True, is_stereo=False
+                params=params, split=test_splits[split_cnt], shuffle=False, per_file=True, is_stereo=True
             )
 
             # Dump results in DCASE output format for calculating final scores
