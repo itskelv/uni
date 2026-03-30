@@ -444,8 +444,8 @@ def main(argv):
 
             # Dump results in DCASE output format for calculating final scores
             dcase_output_val_folder = os.path.join(params['dcase_output_dir'], '{}_{}_val'.format(unique_name, strftime("%Y%m%d%H%M%S", gmtime())))
-            dcase_foa_output_val_folder = np.load(os.path.join(dcase_output_val_folder, "foa"))
-            dcase_stereo_output_val_folder = np.load(os.path.join(dcase_output_val_folder, "stereo"))
+            dcase_foa_output_val_folder = os.path.join(dcase_output_val_folder, "foa")
+            dcase_stereo_output_val_folder = os.path.join(dcase_output_val_folder, "stereo")
             cls_feature_class.delete_and_create_folder(dcase_foa_output_val_folder)
             cls_feature_class.delete_and_create_folder(dcase_stereo_output_val_folder)
             print('Dumping recording-wise val results in: {}'.format(dcase_output_val_folder))
