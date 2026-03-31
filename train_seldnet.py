@@ -8,6 +8,7 @@ import numpy as np
 import matplotlib.pyplot as plot
 import cls_feature_class
 import cls_data_generator
+import train_data_generator
 import parameters
 import time
 from time import gmtime, strftime
@@ -412,7 +413,7 @@ def main(argv):
                 params=params, split=train_splits[split_cnt], is_stereo=True
             )
 
-            data_gen_train = itertools.chain(f_data_gen_train, s_data_gen_train)
+            data_gen_train = train_data_generator.TrainDataGenerator(f_data_gen_train, s_data_gen_train)
 
             print('Loading validation dataset:')
             f_data_gen_val = cls_data_generator.DataGenerator(
@@ -494,7 +495,7 @@ def main(argv):
                 train_time = time.time() - start_time
                 # ---------------------------------------------------------------------
                 # VALIDATION
-                # ---------------------------------------------------------------------
+                # ----------------------------------------------s-----------------------
 
                 start_time = time.time()
                 f_val_loss = test_epoch(f_data_gen_val, model, criterion, dcase_foa_output_val_folder, params, device)
