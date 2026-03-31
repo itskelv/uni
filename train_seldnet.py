@@ -20,6 +20,7 @@ from cls_compute_seld_results import ComputeSELDResults, reshape_3Dto2D
 from SELD_evaluation_metrics import distance_between_cartesian_coordinates
 import seldnet_model 
 import wandb
+import itertools
 
 os.environ['WANDB_API_KEY'] = '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'
 
@@ -406,9 +407,12 @@ def main(argv):
             f_data_gen_train = cls_data_generator.DataGenerator(
                 params=params, split=train_splits[split_cnt], is_stereo=False
             )
+
             s_data_gen_train = cls_data_generator.DataGenerator(
                 params=params, split=train_splits[split_cnt], is_stereo=True
             )
+
+            data_gen_train = itertools.chain(f_data_gen_train, s_data_gen_train)
 
             print('Loading validation dataset:')
             f_data_gen_val = cls_data_generator.DataGenerator(
@@ -420,10 +424,10 @@ def main(argv):
 
             # Collect i/o data size and load model configuration
             if params['modality'] == 'audio_visual':
-                data_in, vid_data_in, data_out = f_data_gen_train.get_data_sizes()
+                data_in, vid_data_in, data_out = data_gen_train.get_data_sizes()
                 model = seldnet_model.SeldModel(data_in, data_out, params, vid_data_in).to(device)
             else:
-                data_in, data_out = f_data_gen_train.get_data_sizes()
+                data_in, data_out = data_gen_train.get_data_sizes()
                 model = seldnet_model.SeldModel(data_in, data_out, params).to(device)
 
             if params['finetune_mode']:
@@ -477,13 +481,16 @@ def main(argv):
                 # TRAINING
                 # ---------------------------------------------------------------------
                 start_time = time.time()
-                if epoch_cnt % 2 == 0:
-                    f_train_loss = train_epoch(f_data_gen_train, optimizer, model, criterion, params, device)
-                    s_train_loss = train_epoch(s_data_gen_train, optimizer, model, criterion, params, device)
-                else:
-                    s_train_loss = train_epoch(s_data_gen_train, optimizer, model, criterion, params, device)
-                    f_train_loss = train_epoch(f_data_gen_train, optimizer, model, criterion, params, device)
-                train_loss = (f_train_loss + s_train_loss) / 2
+                # if epoch_cnt % 2 == 0:
+                #     f_train_loss = train_epoch(f_data_gen_train, optimizer, model, criterion, params, device)
+                #     s_train_loss = train_epoch(s_data_gen_train, optimizer, model, criterion, params, device)
+                # else:
+                #     s_train_loss = train_epoch(s_data_gen_train, optimizer, model, criterion, params, device)
+                #     f_train_loss = train_epoch(f_data_gen_train, optimizer, model, criterion, params, device)
+                # train_loss = (f_train_loss + s_train_loss) / 2
+                
+                train_loss = train_epoch(data_gen_train, optimizer, model, criterion, params, device)
+
                 train_time = time.time() - start_time
                 # ---------------------------------------------------------------------
                 # VALIDATION
