@@ -406,21 +406,21 @@ def main(argv):
             # Load train and validation data
             print('Loading training dataset:')
             f_data_gen_train = cls_data_generator.DataGenerator(
-                params=params, split=train_splits[split_cnt], is_stereo=False
+                params=params, split=train_splits[split_cnt]
             )
 
             s_data_gen_train = cls_data_generator.DataGenerator(
-                params=params, split=train_splits[split_cnt], is_stereo=True
+                params=params, split=train_splits[split_cnt]
             )
 
             data_gen_train = train_data_generator.TrainDataGenerator(f_data_gen_train, s_data_gen_train)
 
             print('Loading validation dataset:')
             f_data_gen_val = cls_data_generator.DataGenerator(
-                params=params, split=val_splits[split_cnt], shuffle=False, per_file=True, is_stereo=False
+                params=params, split=val_splits[split_cnt], shuffle=False, per_file=True
             )
             s_data_gen_val = cls_data_generator.DataGenerator(
-                params=params, split=val_splits[split_cnt], shuffle=False, per_file=True, is_stereo=True
+                params=params, split=val_splits[split_cnt], shuffle=False, per_file=True
             )
 
             # Collect i/o data size and load model configuration
