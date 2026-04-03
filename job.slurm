@@ -12,4 +12,4 @@
 module load cuda/12.1
 conda activate uni
 python3 batch_feature_extraction.py 11
-python3 train_seldnet.py 11
+# python3 train_seldnet.py 11.
