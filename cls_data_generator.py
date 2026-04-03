@@ -29,10 +29,8 @@ class DataGenerator(object):
         self._feat_dir = self._feat_cls.get_normalized_feat_dir()
         if self._ild_ipd:
             self._feat_dir = self._feat_dir + "+ild_ipd"
-            self._feat_dir_norm = self._feat_dir_norm + "+ild_ipd"
         if self._single_ild_ipd:
             self._feat_dir = self._feat_dir + "+single_ild_ipd"
-            self._feat_dir_norm = self._feat_dir_norm + "+single_ild_ipd"
         self._multi_accdoa = params['multi_accdoa']
 
         self._filenames_list = list()
