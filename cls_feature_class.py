@@ -548,12 +548,9 @@ class FeatureClass:
         if self._single_ild_ipd:
             self._feat_dir = self._feat_dir + "+single_ild_ipd"
             self._feat_dir_norm = self._feat_dir_norm + "+single_ild_ipd"
-        self._f_feat_dir = self._feat_dir + "foa"
-        self._s_feat_dir = self._feat_dir + "stereo"
-        self._f_feat_dir_norm = self._feat_dir_norm + "foa"
-        self._s_feat_dir_norm = self._feat_dir_norm + "stereo"
-        create_folder(self._f_feat_dir_norm)
-        create_folder(self._s_feat_dir_norm)
+        self._feat_dir = self._feat_dir
+        self._feat_dir_norm = self._feat_dir_norm
+        create_folder(self._feat_dir_norm)
         normalized_features_wts_file = self.get_normalized_wts_file()
         spec_scaler = None
 
@@ -564,17 +561,12 @@ class FeatureClass:
 
         else:
             print('Estimating weights for normalizing feature files:')
-            print('\t\tf_feat_dir: {} \t\ts_feat_dir: {}'.format(self._f_feat_dir, self._s_feat_dir))
+            print('\t\tf_feat_dir: {}'.format(self._feat_dir))
 
             spec_scaler = preprocessing.StandardScaler()
-            for file_cnt, file_name in enumerate(os.listdir(self._f_feat_dir)):
+            for file_cnt, file_name in enumerate(os.listdir(self._feat_dir)):
                 print('{}: {}'.format(file_cnt, file_name))
-                feat_file = np.load(os.path.join(self._f_feat_dir, file_name))
-                spec_scaler.partial_fit(feat_file)
-                del feat_file
-            for file_cnt, file_name in enumerate(os.listdir(self._s_feat_dir)):
-                print('{}: {}'.format(file_cnt, file_name))
-                feat_file = np.load(os.path.join(self._s_feat_dir, file_name))
+                feat_file = np.load(os.path.join(self._feat_dir, file_name))
                 spec_scaler.partial_fit(feat_file)
                 del feat_file
             joblib.dump(
@@ -584,8 +576,8 @@ class FeatureClass:
             print('Normalized_features_wts_file: {}. Saved.'.format(normalized_features_wts_file))
 
         print('Normalizing feature files:')
-        print('\t\tf_feat_dir_norm: {} \t\ts_feat_dir_norm: {}'.format(self._f_feat_dir_norm, self._s_feat_dir_norm))
-        for file_cnt, file_name in enumerate(os.listdir(self._f_feat_dir)):
+        print('\t\tf_feat_dir_norm: {} \t\t'.format(self._feat_dir_norm))
+        for file_cnt, file_name in enumerate(os.listdir(self._feat_dir)):
             print('{}: {}'.format(file_cnt, file_name))
             feat_file = np.load(os.path.join(self._f_feat_dir, file_name))
             feat_file = spec_scaler.transform(feat_file)
@@ -594,18 +586,8 @@ class FeatureClass:
                 feat_file
             )
             del feat_file
-        for file_cnt, file_name in enumerate(os.listdir(self._s_feat_dir)):
-            print('{}: {}'.format(file_cnt, file_name))
-            feat_file = np.load(os.path.join(self._s_feat_dir, file_name))
-            feat_file = spec_scaler.transform(feat_file)
-            np.save(
-                os.path.join(self._s_feat_dir_norm, file_name),
-                feat_file
-            )
-            del feat_file
 
-        print('normalized foa files written to {}'.format(self._f_feat_dir_norm))
-        print('normalized stereo files written to {}'.format(self._s_feat_dir_norm))
+        print('normalized stereo written to {}'.format(self._feat_dir_norm))
 
     # ------------------------------- EXTRACT LABELS AND PREPROCESS IT -------------------------------
     def extract_all_labels(self):

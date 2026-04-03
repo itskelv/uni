@@ -70,7 +70,7 @@ class ComputeSELDResults(object):
                 gt_dict = self._feat_cls.convert_output_format_polar_to_cartesian(gt_dict)
                 keys = list(gt_dict.keys())
                 if len(keys) > 0:
-                    ("event detected")
+                    print("event detected")
                     nb_ref_frames = max(keys)
                 else:
                     print("no event detected")
