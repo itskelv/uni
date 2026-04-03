@@ -41,6 +41,7 @@ def get_params(argv='1'):
         ild_ipd=False,
         unified=False,
         single_ild_ipd=False,
+        nb_channels=7,
 
         use_salsalite=False,  # Used for MIC dataset only. If true use salsalite features, else use GCC features
         fmin_doa_salsalite=50,
@@ -135,6 +136,7 @@ def get_params(argv='1'):
         params['multi_accdoa'] = True
         params['finetune_mode'] = False
         params['ild_ipd'] = True
+        params['nb_channels'] = 10
 
     elif argv == '9':
         print("ild ipd + unified + multi ACCDOA\n")
@@ -145,6 +147,8 @@ def get_params(argv='1'):
         params['ild_ipd'] = True
         params['single_ild_ipd'] = False
         params['unified'] = True
+        params['nb_channels'] = 10
+
 
     elif argv == '10':
         print("unified + multi ACCDOA\n")
@@ -155,6 +159,7 @@ def get_params(argv='1'):
         params['ild_ipd'] = False
         params['single_ild_ipd'] = False
         params['unified'] = True
+        params['nb_channels'] = 7
 
     elif argv == '11':
         print("1 ild ipd + unified + multi ACCDOA\n")
@@ -165,6 +170,7 @@ def get_params(argv='1'):
         params['single_ild_ipd'] = True
         params['ild_ipd'] = False
         params['unified'] = True
+        params['nb_channels'] = 8
 
     elif argv == '999':
         print("QUICK TEST MODE\n")

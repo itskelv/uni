@@ -65,7 +65,7 @@ class FeatureClass:
 
         self._dataset = params['dataset']
         self._eps = 1e-8
-        self._nb_channels = 4
+        self._nb_channels = params['nb_channels']
         self._ild_ipd = params['ild_ipd']
         self._single_ild_ipd = params['single_ild_ipd']
 
