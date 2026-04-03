@@ -449,10 +449,7 @@ def main(argv):
 
             # Dump results in DCASE output format for calculating final scores
             dcase_output_val_folder = os.path.join(params['dcase_output_dir'], '{}_{}_val'.format(unique_name, strftime("%Y%m%d%H%M%S", gmtime())))
-            dcase_foa_output_val_folder = os.path.join(dcase_output_val_folder, "foa")
-            dcase_stereo_output_val_folder = os.path.join(dcase_output_val_folder, "stereo")
-            cls_feature_class.delete_and_create_folder(dcase_foa_output_val_folder)
-            cls_feature_class.delete_and_create_folder(dcase_stereo_output_val_folder)
+            cls_feature_class.delete_and_create_folder(dcase_output_val_folder)
             print('Dumping recording-wise val results in: {}'.format(dcase_output_val_folder))
 
             # Initialize evaluation metric class
@@ -497,23 +494,17 @@ def main(argv):
                 # VALIDATION
                 # ----------------------------------------------s-----------------------
 
-                start_time = time.time()
-                f_val_loss = test_epoch(f_data_gen_val, model, criterion, dcase_foa_output_val_folder, params, device)
-                s_val_loss = test_epoch(s_data_gen_val, model, criterion, dcase_stereo_output_val_folder, params, device)
+                val_loss = test_epoch(data_gen_val, model, criterion, dcase_output_val_folder, params, device)
                 # Calculate the DCASE 2021 metrics - Location-aware detection and Class-aware localization scores
 
-                f_val_ER, f_val_F, f_val_LE, f_val_dist_err, f_val_rel_dist_err, f_val_LR, f_val_seld_scr, f_classwise_val_scr = score_obj.get_SELD_Results(dcase_foa_output_val_folder)
-                s_val_ER, s_val_F, s_val_LE, s_val_dist_err, s_val_rel_dist_err, s_val_LR, s_val_seld_scr, s_classwise_val_scr = score_obj.get_SELD_Results(dcase_stereo_output_val_folder)
-                val_F = (f_val_F + s_val_F) / 2
-                val_time = time.time() - start_time
+                val_ER, val_F, val_LE, val_dist_err, val_rel_dist_err, val_LR, val_seld_scr, classwise_val_scr = score_obj.get_SELD_Results(dcase_output_val_folder)
 
-                val_loss = (f_val_loss + s_val_loss) / 2
+                val_time = time.time() - start_time
 
                 # Save model if F-score is good
                 if val_F >= best_F:
-                    best_val_epoch, best_f_ER, best_f_F, best_f_LE, best_f_LR, best_f_seld_scr, best_f_dist_err = epoch_cnt, f_val_ER, f_val_F, f_val_LE, f_val_LR, f_val_seld_scr, f_val_dist_err
-                    best_F, best_s_ER, best_s_F, best_s_LE, best_s_LR, best_s_seld_scr, best_s_dist_err = val_F, s_val_ER, s_val_F, s_val_LE, s_val_LR, s_val_seld_scr, s_val_dist_err
-                    best_f_rel_dist_err, best_s_rel_dist_err = f_val_rel_dist_err, s_val_rel_dist_err
+                    best_val_epoch, best_ER, best_F, best_LE, best_LR, best_seld_scr, best_dist_err = epoch_cnt, val_ER, val_F, val_LE, val_LR, val_seld_scr, val_dist_err
+                    best_rel_dist_err = val_rel_dist_err
                     torch.save(model.state_dict(), model_name)
                     patience_cnt = 0
                 else:
@@ -523,24 +514,25 @@ def main(argv):
                 print(
                     'epoch: {}, time: {:0.2f}/{:0.2f}, '
                     'train_loss: {:0.4f}, val_loss: {:0.4f}, '
-                    'unified F/foa_F/foa_AE/foa_Dist_err/foa_Rel_dist_err/foa_SELD/ste_F/ste_AE/ste_Dist_err/ste_Rel_dist_err/ste_SELD: {}, '
+                    'F/AE/Dist_err/Rel_dist_err/SELD: {}, '
                     'best_val_epoch: {} {}'.format(
                         epoch_cnt, train_time, val_time,
                         train_loss, val_loss,
-                        '{:0.2f}/{:0.2f}/{:0.2f}/{:0.2f}/{:0.2f}/{:0.2f}/{:0.2f}/{:0.2f}/{:0.2f}/{:0.2f}/{:0.2f}'.format(val_F, f_val_F, f_val_LE, f_val_dist_err, f_val_rel_dist_err, f_val_seld_scr, s_val_F, s_val_LE, s_val_dist_err, s_val_rel_dist_err, s_val_seld_scr),
+                        '{:0.2f}/{:0.2f}/{:0.2f}/{:0.2f}/{:0.2f}'.format(val_F, val_LE, val_dist_err, val_rel_dist_err, val_seld_scr),
                         best_val_epoch,
-                        '({:0.2f}/{:0.2f}/{:0.2f}/{:0.2f}/{:0.2f}/{:0.2f}/{:0.2f}/{:0.2f}/{:0.2f}/{:0.2f}/{:0.2f})'.format( best_F, best_f_F, best_f_LE, best_f_dist_err, best_f_rel_dist_err, best_f_seld_scr, best_s_F, best_s_LE, best_s_dist_err, best_s_rel_dist_err, best_s_seld_scr))
+                        '({:0.2f}/{:0.2f}/{:0.2f}/{:0.2f}/{:0.2f})'.format( best_F, best_LE, best_dist_err, best_rel_dist_err, best_seld_scr))
                 )
+
+                if patience_cnt > params['patience']:
+                    break
 
                 wandb.log({
                     "epoch": epoch_cnt,
                     "train_loss": train_loss,
                     "val_loss": val_loss,
-                    "val_F": val_F,
-                    "foa_F": f_val_F,
-                    "stereo_F": s_val_F,
-                    "foa_LE": f_val_LE,
-                    "stereo_LE": s_val_LE
+                    "F-score": val_F,
+                    "AE": val_LE,
+                    "Seld-score": val_seld_scr
                 })
                 if patience_cnt > params['patience']:
                     break
@@ -552,86 +544,50 @@ def main(argv):
             model.load_state_dict(torch.load(model_name, map_location='cpu'))
 
             print('Loading unseen test dataset:')
-            f_data_gen_test = cls_data_generator.DataGenerator(
-                params=params, split=test_splits[split_cnt], shuffle=False, per_file=True, is_stereo=False
-            )
-            s_data_gen_test = cls_data_generator.DataGenerator(
-                params=params, split=test_splits[split_cnt], shuffle=False, per_file=True, is_stereo=True
+            data_gen_test = cls_data_generator.DataGenerator(
+                params=params, split=test_splits[split_cnt], shuffle=False, per_file=True
             )
 
             # Dump results in DCASE output format for calculating final scores
             dcase_output_test_folder = os.path.join(params['dcase_output_dir'], '{}_{}_test'.format(unique_name, strftime("%Y%m%d%H%M%S", gmtime())))
-            dcase_foa_output_test_folder = os.path.join(dcase_output_test_folder, "foa")
-            dcase_stereo_output_test_folder = os.path.join(dcase_output_test_folder, "stereo")
-            cls_feature_class.delete_and_create_folder(dcase_foa_output_test_folder)
-            cls_feature_class.delete_and_create_folder(dcase_stereo_output_test_folder)
+            cls_feature_class.delete_and_create_folder(dcase_output_test_folder)
             print('Dumping recording-wise test results in: {}'.format(dcase_output_test_folder))
 
-            f_test_loss = test_epoch(f_data_gen_test, model, criterion, dcase_foa_output_test_folder, params, device)
-            s_test_loss = test_epoch(s_data_gen_test, model, criterion, dcase_stereo_output_test_folder, params, device)
+
+            test_loss = test_epoch(data_gen_test, model, criterion, dcase_output_test_folder, params, device)
 
             use_jackknife=True
-            f_test_ER, f_test_F, f_test_LE, f_test_dist_err, f_test_rel_dist_err, f_test_LR, f_test_seld_scr, f_classwise_test_scr = score_obj.get_SELD_Results(dcase_foa_output_test_folder, is_jackknife=use_jackknife )
-            s_test_ER, s_test_F, s_test_LE, s_test_dist_err, s_test_rel_dist_err, s_test_LR, s_test_seld_scr, s_classwise_test_scr = score_obj.get_SELD_Results(dcase_stereo_output_test_folder, is_jackknife=use_jackknife )
+            test_ER, test_F, test_LE, test_dist_err, test_rel_dist_err, test_LR, test_seld_scr, classwise_test_scr = score_obj.get_SELD_Results(dcase_output_test_folder, is_jackknife=use_jackknife )
 
-            print('foa SELD score (early stopping metric): {:0.2f} {}'.format(f_test_seld_scr[0] if use_jackknife else f_test_seld_scr, '[{:0.2f}, {:0.2f}]'.format(f_test_seld_scr[1][0], f_test_seld_scr[1][1]) if use_jackknife else ''))
-            print('foa SED metrics: F-score: {:0.1f} {}'.format(100* f_test_F[0]  if use_jackknife else 100* f_test_F, '[{:0.2f}, {:0.2f}]'.format(100* f_test_F[1][0], 100* f_test_F[1][1]) if use_jackknife else ''))
-            print('foa DOA metrics: Angular error: {:0.1f} {}'.format(f_test_LE[0] if use_jackknife else f_test_LE, '[{:0.2f} , {:0.2f}]'.format(f_test_LE[1][0], f_test_LE[1][1]) if use_jackknife else ''))
-            print('foa Distance metrics: {:0.2f} {}'.format(f_test_dist_err[0] if use_jackknife else f_test_dist_err, '[{:0.2f} , {:0.2f}]'.format(f_test_dist_err[1][0], f_test_dist_err[1][1]) if use_jackknife else ''))
-            print('foa Relative Distance metrics: {:0.2f} {}'.format(f_test_rel_dist_err[0] if use_jackknife else f_test_rel_dist_err, '[{:0.2f} , {:0.2f}]'.format(f_test_rel_dist_err[1][0], f_test_rel_dist_err[1][1]) if use_jackknife else ''))
-            
-            print('stereo SELD score (early stopping metric): {:0.2f} {}'.format(s_test_seld_scr[0] if use_jackknife else s_test_seld_scr, '[{:0.2f}, {:0.2f}]'.format(s_test_seld_scr[1][0], s_test_seld_scr[1][1]) if use_jackknife else ''))
-            print('stereo SED metrics: F-score: {:0.1f} {}'.format(100* s_test_F[0]  if use_jackknife else 100* s_test_F, '[{:0.2f}, {:0.2f}]'.format(100* s_test_F[1][0], 100* s_test_F[1][1]) if use_jackknife else ''))
-            print('stereo DOA metrics: Angular error: {:0.1f} {}'.format(s_test_LE[0] if use_jackknife else s_test_LE, '[{:0.2f} , {:0.2f}]'.format(s_test_LE[1][0], s_test_LE[1][1]) if use_jackknife else ''))
-            print('stereo Distance metrics: {:0.2f} {}'.format(s_test_dist_err[0] if use_jackknife else s_test_dist_err, '[{:0.2f} , {:0.2f}]'.format(s_test_dist_err[1][0], s_test_dist_err[1][1]) if use_jackknife else ''))
-            print('stereo Relative Distance metrics: {:0.2f} {}'.format(s_test_rel_dist_err[0] if use_jackknife else s_test_rel_dist_err, '[{:0.2f} , {:0.2f}]'.format(s_test_rel_dist_err[1][0], s_test_rel_dist_err[1][1]) if use_jackknife else ''))
+            print('SELD score (early stopping metric): {:0.2f} {}'.format(test_seld_scr[0] if use_jackknife else test_seld_scr, '[{:0.2f}, {:0.2f}]'.format(test_seld_scr[1][0], test_seld_scr[1][1]) if use_jackknife else ''))
+            print('SED metrics: F-score: {:0.1f} {}'.format(100* test_F[0]  if use_jackknife else 100* test_F, '[{:0.2f}, {:0.2f}]'.format(100* test_F[1][0], 100* test_F[1][1]) if use_jackknife else ''))
+            print('DOA metrics: Angular error: {:0.1f} {}'.format(test_LE[0] if use_jackknife else test_LE, '[{:0.2f} , {:0.2f}]'.format(test_LE[1][0], test_LE[1][1]) if use_jackknife else ''))
+            print('Distance metrics: {:0.2f} {}'.format(test_dist_err[0] if use_jackknife else test_dist_err, '[{:0.2f} , {:0.2f}]'.format(test_dist_err[1][0], test_dist_err[1][1]) if use_jackknife else ''))
+            print('Relative Distance metrics: {:0.2f} {}'.format(test_rel_dist_err[0] if use_jackknife else test_rel_dist_err, '[{:0.2f} , {:0.2f}]'.format(test_rel_dist_err[1][0], test_rel_dist_err[1][1]) if use_jackknife else ''))
 
             if params['average']=='macro':
                 print('Classwise results on unseen test data')
-                print('foa')
                 print('Class\tF\tAE\tdist_err\treldist_err\tSELD_score')
                 for cls_cnt in range(params['unique_classes']):
                     print('{}\t{:0.2f} {}\t{:0.2f} {}\t{:0.2f} {}\t{:0.2f} {}\t{:0.2f} {}'.format(
                         cls_cnt,
 
-                        f_classwise_test_scr[0][1][cls_cnt] if use_jackknife else f_classwise_test_scr[1][cls_cnt],
-                        '[{:0.2f}, {:0.2f}]'.format(f_classwise_test_scr[1][1][cls_cnt][0],
-                                                    f_classwise_test_scr[1][1][cls_cnt][1]) if use_jackknife else '',
-                        f_classwise_test_scr[0][2][cls_cnt] if use_jackknife else f_classwise_test_scr[2][cls_cnt],
-                        '[{:0.2f}, {:0.2f}]'.format(f_classwise_test_scr[1][2][cls_cnt][0],
-                                                    f_classwise_test_scr[1][2][cls_cnt][1]) if use_jackknife else '',
-                        f_classwise_test_scr[0][3][cls_cnt] if use_jackknife else f_classwise_test_scr[3][cls_cnt],
-                        '[{:0.2f}, {:0.2f}]'.format(f_classwise_test_scr[1][3][cls_cnt][0],
-                                                    f_classwise_test_scr[1][3][cls_cnt][1]) if use_jackknife else '',
-                        f_classwise_test_scr[0][4][cls_cnt] if use_jackknife else f_classwise_test_scr[4][cls_cnt],
-                        '[{:0.2f}, {:0.2f}]'.format(f_classwise_test_scr[1][4][cls_cnt][0],
-                                                    f_classwise_test_scr[1][4][cls_cnt][1]) if use_jackknife else '',
+                        classwise_test_scr[0][1][cls_cnt] if use_jackknife else classwise_test_scr[1][cls_cnt],
+                        '[{:0.2f}, {:0.2f}]'.format(classwise_test_scr[1][1][cls_cnt][0],
+                                                    classwise_test_scr[1][1][cls_cnt][1]) if use_jackknife else '',
+                        classwise_test_scr[0][2][cls_cnt] if use_jackknife else classwise_test_scr[2][cls_cnt],
+                        '[{:0.2f}, {:0.2f}]'.format(classwise_test_scr[1][2][cls_cnt][0],
+                                                    classwise_test_scr[1][2][cls_cnt][1]) if use_jackknife else '',
+                        classwise_test_scr[0][3][cls_cnt] if use_jackknife else classwise_test_scr[3][cls_cnt],
+                        '[{:0.2f}, {:0.2f}]'.format(classwise_test_scr[1][3][cls_cnt][0],
+                                                    classwise_test_scr[1][3][cls_cnt][1]) if use_jackknife else '',
+                        classwise_test_scr[0][4][cls_cnt] if use_jackknife else classwise_test_scr[4][cls_cnt],
+                        '[{:0.2f}, {:0.2f}]'.format(classwise_test_scr[1][4][cls_cnt][0],
+                                                    classwise_test_scr[1][4][cls_cnt][1]) if use_jackknife else '',
 
-                        f_classwise_test_scr[0][6][cls_cnt] if use_jackknife else f_classwise_test_scr[6][cls_cnt],
-                        '[{:0.2f}, {:0.2f}]'.format(f_classwise_test_scr[1][6][cls_cnt][0],
-                                                    f_classwise_test_scr[1][6][cls_cnt][1]) if use_jackknife else ''))
-                print('stereo')
-                print('Class\tF\tAE\tdist_err\treldist_err\tSELD_score')
-                for cls_cnt in range(params['unique_classes']):
-                    print('{}\t{:0.2f} {}\t{:0.2f} {}\t{:0.2f} {}\t{:0.2f} {}\t{:0.2f} {}'.format(
-                        cls_cnt,
-
-                        s_classwise_test_scr[0][1][cls_cnt] if use_jackknife else s_classwise_test_scr[1][cls_cnt],
-                        '[{:0.2f}, {:0.2f}]'.format(s_classwise_test_scr[1][1][cls_cnt][0],
-                                                    s_classwise_test_scr[1][1][cls_cnt][1]) if use_jackknife else '',
-                        s_classwise_test_scr[0][2][cls_cnt] if use_jackknife else s_classwise_test_scr[2][cls_cnt],
-                        '[{:0.2f}, {:0.2f}]'.format(s_classwise_test_scr[1][2][cls_cnt][0],
-                                                    s_classwise_test_scr[1][2][cls_cnt][1]) if use_jackknife else '',
-                        s_classwise_test_scr[0][3][cls_cnt] if use_jackknife else s_classwise_test_scr[3][cls_cnt],
-                        '[{:0.2f}, {:0.2f}]'.format(s_classwise_test_scr[1][3][cls_cnt][0],
-                                                    s_classwise_test_scr[1][3][cls_cnt][1]) if use_jackknife else '',
-                        s_classwise_test_scr[0][4][cls_cnt] if use_jackknife else s_classwise_test_scr[4][cls_cnt],
-                        '[{:0.2f}, {:0.2f}]'.format(s_classwise_test_scr[1][4][cls_cnt][0],
-                                                    s_classwise_test_scr[1][4][cls_cnt][1]) if use_jackknife else '',
-
-                        s_classwise_test_scr[0][6][cls_cnt] if use_jackknife else s_classwise_test_scr[6][cls_cnt],
-                        '[{:0.2f}, {:0.2f}]'.format(s_classwise_test_scr[1][6][cls_cnt][0],
-                                                    s_classwise_test_scr[1][6][cls_cnt][1]) if use_jackknife else ''))
+                        classwise_test_scr[0][6][cls_cnt] if use_jackknife else classwise_test_scr[6][cls_cnt],
+                        '[{:0.2f}, {:0.2f}]'.format(classwise_test_scr[1][6][cls_cnt][0],
+                                                    classwise_test_scr[1][6][cls_cnt][1]) if use_jackknife else ''))
 
     if params['mode'] == 'eval':
 

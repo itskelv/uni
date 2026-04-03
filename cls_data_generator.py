@@ -11,7 +11,7 @@ import random
 
 
 class DataGenerator(object):
-    def __init__(self, params, split=1, shuffle=True, per_file=False, is_eval=False, is_stereo=False):
+    def __init__(self, params, split=1, shuffle=True, per_file=False, is_eval=False):
 
         self._per_file = per_file
         self._is_eval = is_eval
@@ -20,25 +20,10 @@ class DataGenerator(object):
         self._feature_seq_len = params['feature_sequence_length']
         self._label_seq_len = params['label_sequence_length']
         self._shuffle = shuffle
-        self._ild_ipd = params['ild_ipd']
-        self._single_ild_ipd = params['single_ild_ipd']
         self._feat_cls = cls_feature_class.FeatureClass(params=params, is_eval=self._is_eval)
         self._label_dir = self._feat_cls.get_label_dir()
         self._feat_dir = self._feat_cls.get_normalized_feat_dir()
-        if self._single_ild_ipd:
-            print("generate with single ild and ipd")
-            self._feat_dir = self._feat_dir + "+single_ild_ipd"
-            self._label_dir = self._label_dir + "+single_ild_ipd"
-        if self._ild_ipd:
-            print("generate with ild and ipd")
-            self._feat_dir = self._feat_dir + "+ild_ipd"
-            self._label_dir = self._label_dir + "+ild_ipd"
         self._multi_accdoa = params['multi_accdoa']
-
-        if is_stereo:
-            self._feat_dir = self._feat_dir + "stereo"
-        else:
-            self._feat_dir = self._feat_dir + "foa"
 
         self._filenames_list = list()
         self._nb_frames_file = 0     # Using a fixed number of frames in feat files. Updated in _get_label_filenames_sizes()
