@@ -507,11 +507,8 @@ class FeatureClass:
             self._feat_dir = self._feat_dir + "+ild_ipd"
         elif self._single_ild_ipd:
             print("extracting single ild ipd")
-            self._feat_dir = self._feat_dir + "+single_ild_ipd"
-        self._f_feat_dir = self._feat_dir + "foa"
-        self._s_feat_dir = self._feat_dir + "stereo"        
-        create_folder(self._f_feat_dir)
-        create_folder(self._s_feat_dir)
+            self._feat_dir = self._feat_dir + "+single_ild_ipd" 
+        create_folder(self._feat_dir)
         from multiprocessing import Pool
         import time
         start_s = time.time()
@@ -587,7 +584,7 @@ class FeatureClass:
             )
             del feat_file
 
-        print('normalized stereo written to {}'.format(self._feat_dir_norm))
+        print('normalized feature written to {}'.format(self._feat_dir_norm))
 
     # ------------------------------- EXTRACT LABELS AND PREPROCESS IT -------------------------------
     def extract_all_labels(self):
