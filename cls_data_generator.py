@@ -21,6 +21,10 @@ class DataGenerator(object):
         self._label_seq_len = params['label_sequence_length']
         self._shuffle = shuffle
         self._feat_cls = cls_feature_class.FeatureClass(params=params, is_eval=self._is_eval)
+        self._unified = params['unified']
+        self._nb_channels = params['nb_channels']
+        self._ild_ipd = params['ild_ipd']
+        self._single_ild_ipd = params['single_ild_ipd']
         self._label_dir = self._feat_cls.get_label_dir()
         self._feat_dir = self._feat_cls.get_normalized_feat_dir()
         if self._ild_ipd:
